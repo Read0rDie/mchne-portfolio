@@ -29,9 +29,9 @@ export class VisualWorld {
         0.1,
         5000
     );
-    this.camera.position.z = 500;
-    this.camera.position.y = 400;
-    this.camera.position.x = 400;
+    this.camera.position.z = 1200;
+    this.camera.position.y = 600;
+    this.camera.position.x = 0;
     this.clock = new THREE.Clock();
     this.scene = new THREE.Scene();
 
@@ -48,6 +48,10 @@ export class VisualWorld {
 
     if(this.debugMode){
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+        this.controls.enableDamping = true;
+        this.controls.minDistance = 500;
+        this.controls.maxDistance = 4000;
+        this.controls.enablePan = false;
         const axesHelper = new THREE.AxesHelper(500);
         this.scene.add(axesHelper);
     }

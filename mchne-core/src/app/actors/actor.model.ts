@@ -12,3 +12,10 @@ export class Actor {
         throw Error("Method is not defined")
     }
 }
+
+export enum MoveDirection {
+      UP = 'UP',
+      DOWN = 'DOWN',
+      LEFT = 'LEFT',
+      RIGHT = 'RIGHT'
+}

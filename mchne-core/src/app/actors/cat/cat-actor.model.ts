@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 import { VisualWorld } from '../../visual-world/visual-world.model';
-import { Actor } from '../actor.model';
+import { Actor, MoveDirection } from '../actor.model';
 import { ActorController } from '../actor-controller.model';
 
 export class CatActor extends Actor {
@@ -59,15 +59,19 @@ export class CatActor extends Actor {
         switch(e.code) {
           case 'ArrowUp':
             this.actorControls.shiftUp = true
+            this.actorControls.pressedButtons.add(MoveDirection.UP);
             break;
           case 'ArrowDown':
             this.actorControls.shiftDown = true
+            this.actorControls.pressedButtons.add(MoveDirection.DOWN);
             break;
           case 'ArrowLeft':
             this.actorControls.shiftLeft = true
+            this.actorControls.pressedButtons.add(MoveDirection.LEFT);
             break;
           case 'ArrowRight':
             this.actorControls.shiftRight = true
+            this.actorControls.pressedButtons.add(MoveDirection.RIGHT);
             break;
           case 'ShiftRight':
             this.actorControls.toggleRun = true
@@ -82,15 +86,19 @@ export class CatActor extends Actor {
         switch(e.code) {
           case 'ArrowUp':
             this.actorControls.shiftUp = false
+            this.actorControls.pressedButtons.delete(MoveDirection.UP);
             break;
           case 'ArrowDown':
             this.actorControls.shiftDown = false
+            this.actorControls.pressedButtons.delete(MoveDirection.DOWN);
             break;
           case 'ArrowLeft':
             this.actorControls.shiftLeft = false
+            this.actorControls.pressedButtons.delete(MoveDirection.LEFT);
             break;
           case 'ArrowRight':
             this.actorControls.shiftRight = false
+            this.actorControls.pressedButtons.delete(MoveDirection.RIGHT);
             break;
           case 'ShiftRight':
             this.actorControls.toggleRun = false
