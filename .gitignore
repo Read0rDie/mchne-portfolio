@@ -1,0 +1,72 @@
+# See http://help.github.com/ignore-files/ for more about ignoring files.
+
+# Compiled output
+/dist
+/tmp
+/out-tsc
+/bazel-out
+/mchne-core/dist
+/mchne-core/tmp
+/mchne-core/out-tsc
+/mchne-core/bazel-out
+
+# Node
+/node_modules
+/mchne-core/node_modules
+npm-debug.log
+/mchne-core/npm-debug.log
+yarn-error.log
+/mchne-core/yarn-error.log
+
+# IDEs and editors
+.idea/
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+/mchne-core/.idea/
+/mchne-core/.project
+/mchne-core/.classpath
+/mchne-core/.c9/
+/mchne-core/*.launch
+/mchne-core/.settings/
+/mchne-core/*.sublime-workspace
+
+# Visual Studio Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history/*
+
+/mchne-core/.vscode/*
+/mchne-core/!.vscode/settings.json
+/mchne-core/!.vscode/tasks.json
+/mchne-core/!.vscode/launch.json
+/mchne-core/!.vscode/extensions.json
+/mchne-core/.history/*
+
+# Miscellaneous
+/.angular/cache
+.sass-cache/
+/connect.lock
+/coverage
+/libpeerconnection.log
+testem.log
+/typings
+
+/mchne-core/.angular/cache
+/mchne-core/.sass-cache/
+/mchne-core/connect.lock
+/mchne-core/coverage
+/mchne-core/libpeerconnection.log
+/mchne-core/testem.log
+/mchne-core/typings
+
+# System files
+.DS_Store
+Thumbs.db
