@@ -2,6 +2,8 @@ import { AfterViewInit, Component, ElementRef, HostListener, OnInit, ViewChild }
 import { CommonModule } from '@angular/common';
 import { VisualLayer } from './visual-layer/visual-layer.model';
 import { AssetService } from '../../services/asset-loader/asset-loader.service';
+import { PhysicsLayer } from './physics-layer/physics-layer.model';
+import { ThreeDimensionalWorld } from './three-dimensional-canvas.class';
 
 @Component({
   selector: 'app-three-dimensional-canvas',
@@ -15,12 +17,16 @@ export class ThreeDimensionalCanvasComponent implements OnInit, AfterViewInit {
   @ViewChild('canvas')
   private canvasRef : ElementRef;
   private assetService : AssetService;
-  private visualLayer : VisualLayer;
+  private threeDimensionalWorld : ThreeDimensionalWorld;
+
+  constructor(){
+    this.assetService = AssetService.getInstance();
+  }
 
   @HostListener('document:keydown', ['$event'])
   handleKeyboardDownEvent(event: KeyboardEvent) { 
-    if(this.visualLayer && this.visualLayer.getSelectedActor()){
-      this.visualLayer.getSelectedActor().action(event)
+    if(this.threeDimensionalWorld && this.threeDimensionalWorld.getSelectedActor()){
+      this.threeDimensionalWorld.getSelectedActor().action(event)
     } else {
       console.log("Actor model is not initialized yet.")
     }
@@ -28,20 +34,19 @@ export class ThreeDimensionalCanvasComponent implements OnInit, AfterViewInit {
 
   @HostListener('document:keyup', ['$event'])
   handleKeyboardUpEvent(event: KeyboardEvent) { 
-    if(this.visualLayer && this.visualLayer.getSelectedActor()){
-      this.visualLayer.getSelectedActor().cut(event)
+    if(this.threeDimensionalWorld && this.threeDimensionalWorld.getSelectedActor()){
+      this.threeDimensionalWorld.getSelectedActor().cut(event)
     } else {
       console.log("Actor model is not initialized yet.")
     }
   }
 
   ngOnInit(): void {
-    this.assetService = AssetService.getInstance();
+
   }
 
   ngAfterViewInit(): void {
-    this.visualLayer = new VisualLayer(this.canvasRef.nativeElement,false, 'cat');
-    this.visualLayer.generateFloor();
+    this.threeDimensionalWorld = new ThreeDimensionalWorld(this.canvasRef.nativeElement,false, 'cat');
   }
   
 }

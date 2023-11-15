@@ -22,8 +22,8 @@ export class ActorController {
 
     // constants
     private fadeDuration : number = 0.2;
-    private runVelocity : number = 800;
-    private walkVelocity : number = 400;
+    private runVelocity : number = 200;
+    private walkVelocity : number = 100;
 
     // tempData
     private walkingDirection : THREE.Vector3 = new THREE.Vector3();
@@ -105,7 +105,7 @@ export class ActorController {
             this.model.position.x += moveX;
             this.model.position.z += moveZ;
             this.updateCameraTarget(moveX,moveZ);
-            console.log(this.model.position)
+            //console.log(this.model.position)
         }
         
     }

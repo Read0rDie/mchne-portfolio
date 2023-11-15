@@ -1,19 +1,20 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 
-import { AssetService } from '../../../services/asset-loader/asset-loader.service';
-import { Prop } from '../../../services/asset-loader/models/prop.model';
 import { generateUUID } from 'three/src/math/MathUtils';
 import * as _ from 'lodash';
 import { CanvasAsset } from './canvas-asset.model';
 import { Asset } from '../../../services/asset-loader/models/asset.model';
 import { Actor } from '../../../services/asset-loader/models/actor.model';
 import { ActorController } from './actor-controller.model';
+import { CannonUtils } from '../../../utils/cannon-utils.class';
+import { Trimesh } from 'cannon-es';
+import { PhysicsLayer } from '../physics-layer/physics-layer.model';
 
 export class VisualLayer {
   public fieldOfView : number = 45;
   public debugMode : boolean;
-  public scene!: THREE.Scene;
+  public scene: THREE.Scene;
   public camera!: THREE.PerspectiveCamera;
   public controls!: OrbitControls;
   public renderer!: THREE.WebGLRenderer;
@@ -25,55 +26,86 @@ export class VisualLayer {
   public cameraOffsetY : number = 200;
   public cameraOffsetZ : number = 200;
 
+  public shapes : { 'shape' : Trimesh, 'mesh' : THREE.Mesh }[] = [];
+
 
   constructor(canvas : HTMLCanvasElement, debugMode : boolean, defaultActor : string){
     this.canvas = canvas;
     this.debugMode = debugMode;
     this.defaultActor = defaultActor;
     this.initialize();
-    this.animate();
+    this.generateFloor();
+    //this.animate();
   }
 
   initialize(){
+    this.initCamera();
+    this.initRenderer();
+    this.initOrbitControls();
+    this.initScene(this.generateLighting());
+
+    //this.generateProps();
+    //this.generateActors();
+
+  }
+
+  private initCamera(){
     this.camera = new THREE.PerspectiveCamera(
-        this.fieldOfView,
-        window.innerWidth/ window.innerHeight,
-        0.1,
-        5000
+      this.fieldOfView,
+      window.innerWidth/ window.innerHeight,
+      0.1,
+      5000
     );
     this.camera.position.z = this.cameraOffsetX;
     this.camera.position.y = this.cameraOffsetY;
     this.camera.position.x = this.cameraOffsetZ;
-    this.scene = new THREE.Scene();
+  }
 
-    //this.scene.background = new THREE.Color(0xffffff);
-
+  private initRenderer(){
     this.renderer = new THREE.WebGLRenderer({
-        canvas : this.canvas,
-        antialias: true
-
+      canvas : this.canvas,
+      antialias: true
     })
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap
     document.body.appendChild(this.renderer.domElement);
+  }
 
-    
-        this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-        this.controls.enableDamping = true;
-        this.controls.minDistance = 5;
-        this.controls.maxDistance = 4000;
-        this.controls.enablePan = false;
+  private initOrbitControls(){
+    this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+    this.controls.enableDamping = true;
+    this.controls.minDistance = 5;
+    this.controls.maxDistance = 4000;
+    this.controls.enablePan = false;
+  }
+
+  private initScene(lightSources : THREE.Light[]){
+    this.scene = new THREE.Scene();
     if(this.debugMode){
-        const axesHelper = new THREE.AxesHelper(500);
-        this.scene.add(axesHelper);
+      const axesHelper = new THREE.AxesHelper(500);
+      this.scene.add(axesHelper);
     }
 
+    lightSources.forEach((light) => {
+      this.scene.add(light);
+      if(light instanceof THREE.PointLight){
+        const helper = new THREE.PointLightHelper( (light as THREE.PointLight), 5 );
+        this.scene.add(helper);
+      }
+    })
+  }
+
+  private generateLighting() : THREE.Light[] {
+    let retVal : THREE.Light[] = [];
+
+    // Ambient omnipresent light that DOES NOT cast shadows
     let ambientLight = new THREE.AmbientLight(0xFFFFFF, 0.2);
     ambientLight.castShadow = true;
     ambientLight.position.set(0,64,32);
-    this.scene.add(ambientLight);
+    retVal.push(ambientLight);
 
+    // Omnidirectional light that DOES cast shadows
     let spotLight = new THREE.PointLight(0xFFFFFF, 1.0, 5000, 0);
     spotLight.castShadow = true;
     spotLight.position.set(0,2000,400);
@@ -81,47 +113,12 @@ export class VisualLayer {
     spotLight.shadow.radius = 5
     spotLight.shadow.mapSize.x = 10000
     spotLight.shadow.mapSize.y = 10000
+    retVal.push(spotLight);
 
-    let directionalLight = new THREE.DirectionalLight(0xFFFFFF, 1.0);
-    directionalLight.position.set(400, 400, 800);
-    directionalLight.shadow.camera.left = -3000;
-    directionalLight.shadow.camera.right = 3000;
-    directionalLight.shadow.camera.top = 3000;
-    directionalLight.shadow.camera.bottom = -3000;
-    directionalLight.castShadow = true;
-    //directionalLight.target()
-    //this.scene.add(directionalLight);
-    /*
-    //let spotLight = new THREE.DirectionalLight(0xFFFFFF, 2.0);
-    spotLight.shadow.camera.left = -3000;
-    spotLight.shadow.camera.right = 3000;
-    spotLight.shadow.camera.top = 3000;
-    spotLight.shadow.camera.bottom = -3000;
-    spotLight.shadow.mapSize.x = 50000
-    spotLight.shadow.mapSize.y = 50000
-    const helper = new THREE.DirectionalLightHelper( spotLight, 5 );
-    */
-    
-    if(this.debugMode){
-      const helper = new THREE.PointLightHelper( spotLight, 5 );
-      this.scene.add(helper);
-    }
-    this.scene.add(spotLight);
-    this.generateProps();
-    this.generateActors();
-
-    window.addEventListener('resize', () => this.onWindowResize(), false );
-
+    return retVal;
   }
 
-  public getSelectedActor() :  Actor {
-    let actors =  this.actors.filter((actor) => {
-      return actor.isSelected
-    });
-    return actors?.[0];
-  }
-
-  generateFloor(){
+  private generateFloor(){
     if(this.debugMode){
       let segments = 40;
       let tileSize = 100;
@@ -153,25 +150,18 @@ export class VisualLayer {
     }
   }
 
-  generateProps(){
-    let assetService = AssetService.getInstance();
-    assetService.getProps().then((props) => {
-      this.populateRocks(props);
-      this.populateTrees(props);
-      props.forEach((prop) => {
-        //console.log(prop.name);
-      })
+
+  private getMesh(model:THREE.Object3D<THREE.Object3DEventMap>, meshes : THREE.Object3D<THREE.Object3DEventMap>[]){
+    const meshType = 'SkinnedMesh'
+    model.children.forEach((child) => {
+      if (child.type === meshType) {
+          meshes.push(child);
+      } 
+      this.getMesh(child, meshes);
     });
   }
 
-  generateActors(){
-    let assetService = AssetService.getInstance();
-    assetService.getActors().then((actors) => {
-      this.populateActors(actors);
-    });
-  }
-
-  populateActors(assets : Map<string,Actor>){
+  private populateActors(assets : Map<string,Actor>){
     let actorAssets : CanvasAsset[] = [];
     actorAssets.push(new CanvasAsset('cat', new THREE.Vector3(0,0,0), 0.1, 0));
     actorAssets.push(new CanvasAsset('dog', new THREE.Vector3(0,0,100), 0.1, 0));
@@ -184,6 +174,25 @@ export class VisualLayer {
         asset.animations.forEach( (animation) => {
           animationsMap.set(animation.name, mixer.clipAction(animation))
         });
+
+        //console.log("Parsing for meshes");
+        let meshes: THREE.Object3D<THREE.Object3DEventMap>[] = [];
+        this.getMesh(asset.model, meshes);
+        if(meshes.length > 0){
+          let mesh = meshes[0] as THREE.Mesh;
+          //mesh.material = new THREE.MeshNormalMaterial();
+          const actorShape = CannonUtils.generatePhysicsMesh(mesh.geometry);
+          //console.log(actorShape);
+          console.log(mesh);
+
+          mesh.position.x = asset.model.position.x
+          mesh.position.y = asset.model.position.y
+          mesh.position.z = asset.model.position.z
+
+          this.shapes.push({'shape' : actorShape, 'mesh' : mesh});
+          PhysicsLayer.genActors({'shape' : actorShape, 'mesh' : mesh});
+        }
+
         asset.actorControls = new ActorController(asset.model,mixer,animationsMap,this.controls,this.camera);
         asset.isSelected = actor.name == this.defaultActor;
         this.actors.push(asset);
@@ -196,39 +205,9 @@ export class VisualLayer {
   }
 
   pointCameraOnActor(actor : Actor){
-    console.log(actor.model.position)
     this.camera.position.x = actor.model.position.x + this.cameraOffsetX;
     this.camera.position.z = actor.model.position.z + this.cameraOffsetZ;
     this.controls.target = actor.model.position;
-  }
-
-  populateRocks(assets : Map<string,Prop>){
-    let rockAssets : CanvasAsset[] = [];
-    rockAssets.push(new CanvasAsset('rock_arrangement_medium_4', new THREE.Vector3(-100,0,0), 0.1, Math.PI/2));
-    rockAssets.push(new CanvasAsset('rock_arrangement_medium_3', new THREE.Vector3(-75,0,-75), 0.1, 0));
-    rockAssets.push(new CanvasAsset('rock_063', new THREE.Vector3(50,0,-75), 0.3, 0));
-    rockAssets.push(new CanvasAsset('rock_064', new THREE.Vector3(-140,0,-90), 0.4, Math.PI));
-    rockAssets.push(new CanvasAsset('rock_arrangement_large1', new THREE.Vector3(-25,0,-100), 0.05, 0));
-
-    rockAssets.forEach((rock) => {
-      var asset;
-      if(asset = assets.get(rock.name)){
-        this.placeCanvasAsset(rock, asset);
-      }
-    })
-  }
-
-  populateTrees(assets : Map<string,Prop>){
-    let treeAssets : CanvasAsset[] = [];
-    treeAssets.push(new CanvasAsset('pine_tree_arrangement_col4', new THREE.Vector3(-150,0,-300), 0.2, Math.PI/2));
-    treeAssets.push(new CanvasAsset('pine_tree_col3_23', new THREE.Vector3(-220,0,-95), 0.2, Math.PI/2));
-
-    treeAssets.forEach((tree) => {
-      var asset;
-      if(asset = assets.get(tree.name)){
-        this.placeCanvasAsset(tree, asset);
-      }
-    })
   }
 
   private placeCanvasAsset(canvasAsset : CanvasAsset, asset : Asset){
@@ -242,26 +221,8 @@ export class VisualLayer {
     this.scene.add(model);
   }
 
-  private animate() {
-    window.requestAnimationFrame(this.animate.bind(this));
-    this.actors.forEach((actor) => {
-      this.controls.update();
-      actor.update();
-      this.render();
-    })
-    
-  }
-
   public render(){
     this.renderer.render(this.scene,this.camera);
   }
-
-  private onWindowResize(){
-    this.camera.aspect = window.innerWidth / window.innerHeight;
-    this.camera.updateProjectionMatrix();
-    this.renderer.setSize(window.innerWidth, window.innerHeight);
-  }
-
-
 
 }
