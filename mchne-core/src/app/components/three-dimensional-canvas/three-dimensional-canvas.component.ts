@@ -4,6 +4,7 @@ import { VisualLayer } from './visual-layer/visual-layer.model';
 import { AssetService } from '../../services/asset-loader/asset-loader.service';
 import { PhysicsLayer } from './physics-layer/physics-layer.model';
 import { ThreeDimensionalWorld } from './three-dimensional-canvas.class';
+import { Actor } from '../../services/asset-loader/models/actor.model';
 
 @Component({
   selector: 'app-three-dimensional-canvas',
@@ -26,18 +27,28 @@ export class ThreeDimensionalCanvasComponent implements OnInit, AfterViewInit {
   @HostListener('document:keydown', ['$event'])
   handleKeyboardDownEvent(event: KeyboardEvent) { 
     if(this.threeDimensionalWorld && this.threeDimensionalWorld.getSelectedActor()){
-      this.threeDimensionalWorld.getSelectedActor().action(event)
+      let actor :  Actor = this.threeDimensionalWorld.getSelectedActor();
+      if(actor.model && actor.physicsMesh){
+        this.threeDimensionalWorld.getSelectedActor().action(event)
+      } else {
+        console.log("Actor model and physics mesh is not initialized yet.")
+      }
     } else {
-      console.log("Actor model is not initialized yet.")
+      console.log("Actor is not initialized yet.")
     }
   }
 
   @HostListener('document:keyup', ['$event'])
   handleKeyboardUpEvent(event: KeyboardEvent) { 
     if(this.threeDimensionalWorld && this.threeDimensionalWorld.getSelectedActor()){
-      this.threeDimensionalWorld.getSelectedActor().cut(event)
+      let actor :  Actor = this.threeDimensionalWorld.getSelectedActor();
+      if(actor.model && actor.physicsMesh){
+        this.threeDimensionalWorld.getSelectedActor().cut(event)
+      } else {
+        console.log("Actor model and physics mesh is not initialized yet.")
+      }
     } else {
-      console.log("Actor model is not initialized yet.")
+      console.log("Actor is not initialized yet.")
     }
   }
 
@@ -46,7 +57,7 @@ export class ThreeDimensionalCanvasComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    this.threeDimensionalWorld = new ThreeDimensionalWorld(this.canvasRef.nativeElement,false, 'cat');
+    this.threeDimensionalWorld = new ThreeDimensionalWorld(this.canvasRef.nativeElement,true, 'cat');
   }
   
 }

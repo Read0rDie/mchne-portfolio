@@ -24,7 +24,23 @@ export class Actor extends Asset {
 
     public update(){
         if(this.actorControls){
-            this.actorControls.update(this.clock.getDelta());
+            let delta = this.clock.getDelta();
+            this.actorControls.update(delta);
+            /*
+            // update physics body position
+            this.physicsMesh.position.set(
+              this.model.position.x,
+              this.model.position.y,
+              this.model.position.z
+            )
+            // update physics body rotation
+            this.physicsMesh.quaternion.set(
+              this.model.quaternion.x,
+              this.model.quaternion.y,
+              this.model.quaternion.z,
+              this.model.quaternion.w
+            )
+            */
         }
     }
 

@@ -1,11 +1,13 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { MoveDirection } from '../../../services/asset-loader/models/asset-constants.model';
+import * as CANNON from 'cannon-es'
 
 
 export class ActorController {
 
     private model : THREE.Object3D;
+    public physicsBody : CANNON.Body;
     private mixer : THREE.AnimationMixer;
     private animationsMap : Map<string, THREE.AnimationAction>;
     private controls : OrbitControls;
@@ -79,16 +81,34 @@ export class ActorController {
 
         if(this.currentAction == 'Run' || this.currentAction == 'Walk'){
             // calculate movement-toward-camera angle
+            //var cameraAngleY = Math.atan2(
+            //(this.camera.position.x - this.model.position.x),
+            //(this.camera.position.z - this.model.position.z));
+
+            //START
             var cameraAngleY = Math.atan2(
-            (this.camera.position.x - this.model.position.x),
-            (this.camera.position.z - this.model.position.z));
+            (this.camera.position.x - this.physicsBody.position.x),
+            (this.camera.position.z - this.physicsBody.position.z));
+            //END
 
             // calculate diagonal movement offset
             var offset = this.directionOffset();
 
             // rotate model
             this.rotateQurterion.setFromAxisAngle(this.rotateAngle, Math.PI + cameraAngleY + offset);
-            this.model.quaternion.rotateTowards(this.rotateQurterion, 0.2);
+            //this.model.quaternion.rotateTowards(this.rotateQurterion, 0.2);
+
+
+            // START
+            let tempQuarterion : THREE.Quaternion = new THREE.Quaternion(this.model.quaternion.x,this.model.quaternion.y,this.model.quaternion.z,this.model.quaternion.w);
+            tempQuarterion.rotateTowards(this.rotateQurterion, 0.2);
+            this.physicsBody.quaternion.set(
+                tempQuarterion.x,
+                tempQuarterion.y,
+                tempQuarterion.z,
+                tempQuarterion.w
+            )
+            //END
 
             // calculate direction
             this.camera.getWorldDirection(this.walkingDirection);
@@ -102,10 +122,15 @@ export class ActorController {
             // move model and camera
             let moveX = this.walkingDirection.x * velocity * delta;
             let moveZ = this.walkingDirection.z * velocity * delta;
-            this.model.position.x += moveX;
-            this.model.position.z += moveZ;
+            //this.model.position.x += moveX;
+            //this.model.position.z += moveZ;
+
+            //START
+            this.physicsBody.position.x += moveX;
+            this.physicsBody.position.z += moveZ;
+            //END
             this.updateCameraTarget(moveX,moveZ);
-            //console.log(this.model.position)
+            
         }
         
     }
@@ -114,9 +139,16 @@ export class ActorController {
         this.camera.position.x += moveX;
         this.camera.position.z += moveZ;
 
-        this.cameraTarget.x = this.model.position.x;
-        this.cameraTarget.y = this.model.position.y + 1;
-        this.cameraTarget.z = this.model.position.z;
+        //this.cameraTarget.x = this.model.position.x;
+        //this.cameraTarget.y = this.model.position.y + 1;
+        //this.cameraTarget.z = this.model.position.z;
+
+        //START
+        this.cameraTarget.x = this.physicsBody.position.x;
+        this.cameraTarget.y = this.physicsBody.position.y + 1;
+        this.cameraTarget.z = this.physicsBody.position.z;
+        //END
+
         this.controls.target = this.cameraTarget;
     }
 

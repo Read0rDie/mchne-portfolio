@@ -1,15 +1,8 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
-
-import { generateUUID } from 'three/src/math/MathUtils';
 import * as _ from 'lodash';
-import { CanvasAsset } from './canvas-asset.model';
-import { Asset } from '../../../services/asset-loader/models/asset.model';
 import { Actor } from '../../../services/asset-loader/models/actor.model';
-import { ActorController } from './actor-controller.model';
-import { CannonUtils } from '../../../utils/cannon-utils.class';
 import { Trimesh } from 'cannon-es';
-import { PhysicsLayer } from '../physics-layer/physics-layer.model';
 
 export class VisualLayer {
   public fieldOfView : number = 45;
@@ -28,25 +21,27 @@ export class VisualLayer {
 
   public shapes : { 'shape' : Trimesh, 'mesh' : THREE.Mesh }[] = [];
 
-
-  constructor(canvas : HTMLCanvasElement, debugMode : boolean, defaultActor : string){
+  public constructor(canvas : HTMLCanvasElement, debugMode : boolean, defaultActor : string){
     this.canvas = canvas;
     this.debugMode = debugMode;
     this.defaultActor = defaultActor;
     this.initialize();
     this.generateFloor();
-    //this.animate();
   }
 
-  initialize(){
+  public initialize(){
     this.initCamera();
     this.initRenderer();
     this.initOrbitControls();
     this.initScene(this.generateLighting());
+  }
 
-    //this.generateProps();
-    //this.generateActors();
-
+  public pointCameraOnActor(actor : Actor){
+    if(this.camera){
+      this.camera.position.x = actor.model.position.x + this.cameraOffsetX;
+      this.camera.position.z = actor.model.position.z + this.cameraOffsetZ;
+      this.controls.target = actor.model.position;
+    }
   }
 
   private initCamera(){
@@ -148,77 +143,6 @@ export class VisualLayer {
       plane.rotateX(- Math.PI/2);
       this.scene.add(plane);
     }
-  }
-
-
-  private getMesh(model:THREE.Object3D<THREE.Object3DEventMap>, meshes : THREE.Object3D<THREE.Object3DEventMap>[]){
-    const meshType = 'SkinnedMesh'
-    model.children.forEach((child) => {
-      if (child.type === meshType) {
-          meshes.push(child);
-      } 
-      this.getMesh(child, meshes);
-    });
-  }
-
-  private populateActors(assets : Map<string,Actor>){
-    let actorAssets : CanvasAsset[] = [];
-    actorAssets.push(new CanvasAsset('cat', new THREE.Vector3(0,0,0), 0.1, 0));
-    actorAssets.push(new CanvasAsset('dog', new THREE.Vector3(0,0,100), 0.1, 0));
-
-    actorAssets.forEach((actor) => {
-      var asset;
-      if(asset = assets.get(actor.name)){
-        const mixer = new THREE.AnimationMixer(asset.model);
-        const animationsMap = new Map();
-        asset.animations.forEach( (animation) => {
-          animationsMap.set(animation.name, mixer.clipAction(animation))
-        });
-
-        //console.log("Parsing for meshes");
-        let meshes: THREE.Object3D<THREE.Object3DEventMap>[] = [];
-        this.getMesh(asset.model, meshes);
-        if(meshes.length > 0){
-          let mesh = meshes[0] as THREE.Mesh;
-          //mesh.material = new THREE.MeshNormalMaterial();
-          const actorShape = CannonUtils.generatePhysicsMesh(mesh.geometry);
-          //console.log(actorShape);
-          console.log(mesh);
-
-          mesh.position.x = asset.model.position.x
-          mesh.position.y = asset.model.position.y
-          mesh.position.z = asset.model.position.z
-
-          this.shapes.push({'shape' : actorShape, 'mesh' : mesh});
-          PhysicsLayer.genActors({'shape' : actorShape, 'mesh' : mesh});
-        }
-
-        asset.actorControls = new ActorController(asset.model,mixer,animationsMap,this.controls,this.camera);
-        asset.isSelected = actor.name == this.defaultActor;
-        this.actors.push(asset);
-        this.placeCanvasAsset(actor, asset);
-        if(asset.isSelected){
-          this.pointCameraOnActor(asset);
-        }
-      }
-    })
-  }
-
-  pointCameraOnActor(actor : Actor){
-    this.camera.position.x = actor.model.position.x + this.cameraOffsetX;
-    this.camera.position.z = actor.model.position.z + this.cameraOffsetZ;
-    this.controls.target = actor.model.position;
-  }
-
-  private placeCanvasAsset(canvasAsset : CanvasAsset, asset : Asset){
-    let model = asset.model;
-    model.scale.set(canvasAsset.scale, canvasAsset.scale, canvasAsset.scale);
-    model.rotateY(canvasAsset.rotation);
-    model.position.x = canvasAsset.coord.x;
-    model.position.y = canvasAsset.coord.y;
-    model.position.z = canvasAsset.coord.z;
-    model.uuid = generateUUID();
-    this.scene.add(model);
   }
 
   public render(){

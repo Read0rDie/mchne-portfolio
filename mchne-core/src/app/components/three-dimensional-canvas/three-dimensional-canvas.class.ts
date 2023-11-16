@@ -3,6 +3,7 @@ import { Actor } from "../../services/asset-loader/models/actor.model";
 import { CanvasAssetMetaDataConfig } from "../../services/asset-loader/models/asset-constants.model";
 import { Asset } from "../../services/asset-loader/models/asset.model";
 import { Prop } from "../../services/asset-loader/models/prop.model";
+import { CannonUtils } from "../../utils/cannon-utils.class";
 import { PhysicsLayer } from "./physics-layer/physics-layer.model";
 import { ActorController } from "./visual-layer/actor-controller.model";
 import { CanvasAsset } from "./visual-layer/canvas-asset.model";
@@ -12,16 +13,18 @@ import * as THREE from 'three'
 export class ThreeDimensionalWorld {
 
     private _visualLayer : VisualLayer;
-    private _physicalLayer : PhysicsLayer;
+    private _physicsLayer : PhysicsLayer;
     private canvasAssetsConfig : CanvasAssetMetaDataConfig;
     private selectedActor : string;
     public actors : Actor[] = [];
+    private debugModeEnabled : boolean;
 
     public constructor(canvasRef : HTMLCanvasElement, debugModeEnabled : boolean, selectedActor : string){
-        this._visualLayer = new VisualLayer(canvasRef,debugModeEnabled, 'cat');
-        this._physicalLayer = new PhysicsLayer(this.visualLayer.scene, []);
-        this.canvasAssetsConfig = CanvasAssetMetaDataConfig.getInstance();
+        this.debugModeEnabled = debugModeEnabled;
         this.selectedActor = selectedActor;
+        this.canvasAssetsConfig = CanvasAssetMetaDataConfig.getInstance();
+        this._visualLayer = new VisualLayer(canvasRef,debugModeEnabled, 'cat');
+        this._physicsLayer = new PhysicsLayer(this.visualLayer.scene);
         this.animate();
         this.initialize();
         window.addEventListener('resize', () => this.onWindowResize(), false );
@@ -31,8 +34,8 @@ export class ThreeDimensionalWorld {
         return this._visualLayer;
     }
 
-    public get physicalLayer(){
-        return this._physicalLayer;
+    public get physicsLayer(){
+        return this._physicsLayer;
     }
 
     public getSelectedActor() :  Actor {
@@ -43,7 +46,9 @@ export class ThreeDimensionalWorld {
     }
 
     private render(){
-        this.visualLayer.renderer.render(this.visualLayer.scene,this.visualLayer.camera);
+        if(this.visualLayer && this.visualLayer.renderer){
+            this.visualLayer.renderer.render(this.visualLayer.scene,this.visualLayer.camera);
+        }
     }
 
     private initialize(){
@@ -72,6 +77,17 @@ export class ThreeDimensionalWorld {
         });
     }
 
+    private getMesh(model:THREE.Object3D<THREE.Object3DEventMap>, meshes : THREE.Object3D<THREE.Object3DEventMap>[]){
+        const meshType = 'SkinnedMesh'
+        model.children.forEach((child) => {
+            if (child.type === meshType) {
+                meshes.push(child);
+            } 
+            this.getMesh(child, meshes);
+        });
+
+    }
+
     private populateActors(assets : Map<string,Actor>){
         this.canvasAssetsConfig.actorAssets.forEach((actor) => {
             var asset;
@@ -86,10 +102,11 @@ export class ThreeDimensionalWorld {
                 this.actors.push(asset);
                 this.placeCanvasAsset(actor, asset);
                 if(asset.isSelected){
-                this.visualLayer.pointCameraOnActor(asset);
+                    this.visualLayer.pointCameraOnActor(asset);
                 }
+                this.physicsLayer.applyPhysicsBody(asset);
             }
-        })
+        });
     }
     
     private populateRocks(assets : Map<string,Prop>){
@@ -103,11 +120,11 @@ export class ThreeDimensionalWorld {
     
     private populateTrees(assets : Map<string,Prop>){
         this.canvasAssetsConfig.treeAssets.forEach((tree) => {
-          var asset;
-          if(asset = assets.get(tree.name)){
-            this.placeCanvasAsset(tree, asset);
-          }
-        })
+            var asset;
+            if(asset = assets.get(tree.name)){
+                this.placeCanvasAsset(tree, asset);
+            }
+        });
     }
 
     private placeCanvasAsset(canvasAsset : CanvasAsset, asset : Asset){
@@ -123,10 +140,34 @@ export class ThreeDimensionalWorld {
     private animate() {
         window.requestAnimationFrame(this.animate.bind(this));
         this.actors.forEach((actor) => {
-            this.visualLayer.controls.update();
+            if(this.visualLayer){
+                this.visualLayer.controls.update();
+            }
             actor.update();
-            this.render();
+            
+
+            // update physics body position
+            actor.model.position.set(
+                actor.physicsMesh.position.x,
+                actor.physicsMesh.position.y,
+                actor.physicsMesh.position.z
+              )
+              // update physics body rotation
+              actor.model.quaternion.set(
+                actor.physicsMesh.quaternion.x,
+                actor.physicsMesh.quaternion.y,
+                actor.physicsMesh.quaternion.z,
+                actor.physicsMesh.quaternion.w
+              )
+
         })
+        if(this.debugModeEnabled){
+            if(this.physicsLayer){
+                this.physicsLayer.cannonDebugger.update();
+            }
+        }
+        this.physicsLayer.physicsWorld.fixedStep();
+        this.render();
     }
     
     private onWindowResize(){
