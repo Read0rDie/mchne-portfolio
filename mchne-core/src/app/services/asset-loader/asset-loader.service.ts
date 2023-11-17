@@ -83,6 +83,8 @@ export class AssetService {
     private async loadActorAssets(){
         await this.loadActor2('../../assets/models/cat/scene.gltf', 'cat');
         await this.loadActor2('../../assets/models/dog/scene.gltf', 'dog');
+        //await this.loadActor2('../../assets/models/fox/scene.gltf', 'fox');
+        await this.loadActor2('../../assets/models/frog/scene.gltf', 'frog');
     }
 
     private async loadPropAssets(){
@@ -132,8 +134,8 @@ export class AssetService {
                 object.castShadow = true;
                 object.receiveShadow = true;
                 let mat = (object as THREE.Mesh).material;
-                if(mat instanceof THREE.Material){
-                   // mat.
+                if(mat instanceof THREE.MeshStandardMaterial){
+                   mat.emissiveIntensity = 0.5
                 }
                 console.log(mat);
             }                

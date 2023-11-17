@@ -19,6 +19,8 @@ export class CanvasAssetMetaDataConfig {
         // populate actor metadata
         this._actorAssets.push( new CanvasAsset('cat', new THREE.Vector3(10,0,10), 0.01, 0) );
         this._actorAssets.push( new CanvasAsset('dog', new THREE.Vector3(0,0,10), 0.01, 0) );
+        //this._actorAssets.push( new CanvasAsset('fox', new THREE.Vector3(20,0,10), 0.02, 0) );
+        this._actorAssets.push( new CanvasAsset('frog', new THREE.Vector3(0,0,20), 10, 0) );
 
         // populate rock prop assets
         this._rockAssets.push(new CanvasAsset('rock_arrangement_medium_4', new THREE.Vector3(-10,0,0), 0.01, Math.PI/2));
