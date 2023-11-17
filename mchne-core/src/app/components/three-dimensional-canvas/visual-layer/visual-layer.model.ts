@@ -14,6 +14,7 @@ export class VisualLayer {
   public canvas : HTMLCanvasElement;
   public actors : Actor[] = [];
   public defaultActor : string;
+  public lightSources : THREE.Light[] = [];
 
   public cameraOffsetX : number = 30;
   public cameraOffsetY : number = 20;
@@ -33,7 +34,8 @@ export class VisualLayer {
     this.initCamera();
     this.initRenderer();
     this.initOrbitControls();
-    this.initScene(this.generateLighting());
+    this.initLighting()
+    this.initScene();
   }
 
   public pointCameraOnActor(actor : Actor){
@@ -64,17 +66,14 @@ export class VisualLayer {
     this.controls.enablePan = false;
   }
 
-  private initScene(lightSources : THREE.Light[]){
+  private initScene(){
     this.scene = new THREE.Scene();
     if(this.debugMode){
       const axesHelper = new THREE.AxesHelper(500);
       this.scene.add(axesHelper);
-      if(this.camera){
-        //this.scene.add(new THREE.CameraHelper(this.camera));
-      }
     }
 
-    lightSources.forEach((light) => {
+    this.lightSources.forEach((light) => {
       this.scene.add(light);
       if(light instanceof THREE.PointLight){
         const helper = new THREE.PointLightHelper( (light as THREE.PointLight), 5 );
@@ -84,6 +83,9 @@ export class VisualLayer {
         this.scene.add(helper);
       }
     })
+
+    const color : THREE.Color = new THREE.Color(0x2D1E2F);
+    this.scene.background = color;
   }
 
   private initRenderer(){
@@ -100,31 +102,44 @@ export class VisualLayer {
     document.body.appendChild(this.renderer.domElement);
   }
 
-  private generateLighting() : THREE.Light[] {
-    let retVal : THREE.Light[] = [];
+  private initLighting() {
 
     // Ambient omnipresent light that DOES NOT cast shadows
     let ambientLight = new THREE.AmbientLight(0xFFFFFF, 0.2);
     ambientLight.castShadow = true;
     ambientLight.position.set(0,64,32);
-    retVal.push(ambientLight);
+    this.lightSources.push(ambientLight);
+
+    // Omnidirectional light with decay no shadow casting
+    const distance = 400;
+    const angle = Math.PI/4;
+    const penumbra = 0.5
+    const decay = 0.5
+    let spotLight = new THREE.SpotLight(0xFFFFFF, 75.0, distance, angle, penumbra, decay);
+    spotLight.position.set(0,100,200);
+    spotLight.castShadow = false;
+    //spotLight.shadow.mapSize.width = 8192
+    //spotLight.shadow.mapSize.height = 8192
+    spotLight.shadow.camera.far = 400
+    spotLight.shadow.bias = - 0.1
+    this.lightSources.push(spotLight);
+
 
     // Omnidirectional light that DOES cast shadows
-    let spotLight = new THREE.DirectionalLight(0xFFFFFF, 4.0);
-    spotLight.castShadow = true;
-    spotLight.position.set(0,200,200);
-    spotLight.castShadow = true;
-    spotLight.shadow.radius = 5
-    spotLight.shadow.mapSize.width = 8192
-    spotLight.shadow.mapSize.height = 8192
-    spotLight.shadow.bias = - 0.0005
-    spotLight.shadow.camera.top = 100
-    spotLight.shadow.camera.bottom = -100
-    spotLight.shadow.camera.left = -100
-    spotLight.shadow.camera.right = 100
-    retVal.push(spotLight);
+    let directionslLight = new THREE.DirectionalLight(0xFFFFFF, 2.0);
+    directionslLight.castShadow = true;
+    directionslLight.position.set(0,200,200);
+    directionslLight.castShadow = true;
+    directionslLight.shadow.radius = 5
+    directionslLight.shadow.mapSize.width = 8192
+    directionslLight.shadow.mapSize.height = 8192
+    directionslLight.shadow.bias = - 0.0005
+    directionslLight.shadow.camera.top = 100
+    directionslLight.shadow.camera.bottom = -100
+    directionslLight.shadow.camera.left = -100
+    directionslLight.shadow.camera.right = 100
+    this.lightSources.push(directionslLight);
 
-    return retVal;
   }
 
   private generateFloor(){
@@ -150,7 +165,10 @@ export class VisualLayer {
     } else {
       let planeWidth = 400;
       const geometry = new THREE.PlaneGeometry(planeWidth, planeWidth);
-      const material = new THREE.MeshStandardMaterial( {color: 0xFCF6B1, side: THREE.DoubleSide} );
+      //const material = new THREE.MeshStandardMaterial( {color: 0x918777, side: THREE.DoubleSide} );
+      //const material = new THREE.MeshStandardMaterial( {color: 0xFFB731, side: THREE.DoubleSide} );
+      const material = new THREE.MeshStandardMaterial( {color: 0xF7B5C2, side: THREE.DoubleSide} );
+
       const plane = new THREE.Mesh(geometry,material);
       plane.receiveShadow = true;
       plane.castShadow = false;

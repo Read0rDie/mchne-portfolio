@@ -57,7 +57,7 @@ export class ThreeDimensionalCanvasComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    this.threeDimensionalWorld = new ThreeDimensionalWorld(this.canvasRef.nativeElement,true, 'cat');
+    this.threeDimensionalWorld = new ThreeDimensionalWorld(this.canvasRef.nativeElement,false, 'cat');
   }
   
 }

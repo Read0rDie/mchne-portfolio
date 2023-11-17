@@ -29,7 +29,6 @@ export class CanvasAssetMetaDataConfig {
 
         // populate tree prop assets
         this._treeAssets.push(new CanvasAsset('pine_tree_arrangement_col4', new THREE.Vector3(-15,0,-30), 0.02, Math.PI/2));
-        //this._treeAssets.push(new CanvasAsset('pine_tree_arrangement_col4', new THREE.Vector3(-150,0,-300), 0.01, Math.PI/2));
         this._treeAssets.push(new CanvasAsset('pine_tree_col3_23', new THREE.Vector3(-22,0,-9.5), 0.02, Math.PI/2));
         
     }

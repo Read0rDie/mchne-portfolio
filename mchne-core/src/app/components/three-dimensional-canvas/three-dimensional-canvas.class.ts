@@ -150,7 +150,13 @@ export class ThreeDimensionalWorld {
             if(actor.isSelected){
                 let moveX = actor.physicsMesh.position.x - actor.model.position.x;
                 let moveZ = actor.physicsMesh.position.z - actor.model.position.z;
-                actor.actorControls.updateCameraTarget(moveX,moveZ)
+                actor.actorControls.updateCameraTarget(moveX,moveZ);
+                this.visualLayer.lightSources.forEach((light) => {
+                    if(light instanceof THREE.SpotLight){
+                        light.position.x += moveX
+                        light.position.z += moveZ
+                    }
+                })
             }
             
             // update physics body position
