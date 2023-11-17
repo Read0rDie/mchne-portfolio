@@ -24,8 +24,8 @@ export class ActorController {
 
     // constants
     private fadeDuration : number = 0.2;
-    private runVelocity : number = 200;
-    private walkVelocity : number = 100;
+    private runVelocity : number = 20;
+    private walkVelocity : number = 10;
 
     // tempData
     private walkingDirection : THREE.Vector3 = new THREE.Vector3();
@@ -81,25 +81,15 @@ export class ActorController {
 
         if(this.currentAction == 'Run' || this.currentAction == 'Walk'){
             // calculate movement-toward-camera angle
-            //var cameraAngleY = Math.atan2(
-            //(this.camera.position.x - this.model.position.x),
-            //(this.camera.position.z - this.model.position.z));
-
-            //START
             var cameraAngleY = Math.atan2(
             (this.camera.position.x - this.physicsBody.position.x),
             (this.camera.position.z - this.physicsBody.position.z));
-            //END
 
             // calculate diagonal movement offset
             var offset = this.directionOffset();
 
             // rotate model
             this.rotateQurterion.setFromAxisAngle(this.rotateAngle, Math.PI + cameraAngleY + offset);
-            //this.model.quaternion.rotateTowards(this.rotateQurterion, 0.2);
-
-
-            // START
             let tempQuarterion : THREE.Quaternion = new THREE.Quaternion(this.model.quaternion.x,this.model.quaternion.y,this.model.quaternion.z,this.model.quaternion.w);
             tempQuarterion.rotateTowards(this.rotateQurterion, 0.2);
             this.physicsBody.quaternion.set(
@@ -108,7 +98,6 @@ export class ActorController {
                 tempQuarterion.z,
                 tempQuarterion.w
             )
-            //END
 
             // calculate direction
             this.camera.getWorldDirection(this.walkingDirection);
@@ -122,32 +111,21 @@ export class ActorController {
             // move model and camera
             let moveX = this.walkingDirection.x * velocity * delta;
             let moveZ = this.walkingDirection.z * velocity * delta;
-            //this.model.position.x += moveX;
-            //this.model.position.z += moveZ;
 
-            //START
             this.physicsBody.position.x += moveX;
             this.physicsBody.position.z += moveZ;
-            //END
-            this.updateCameraTarget(moveX,moveZ);
             
         }
         
     }
 
-    private updateCameraTarget(moveX: number, moveZ: number){
+    public updateCameraTarget(moveX: number, moveZ: number){
         this.camera.position.x += moveX;
         this.camera.position.z += moveZ;
 
-        //this.cameraTarget.x = this.model.position.x;
-        //this.cameraTarget.y = this.model.position.y + 1;
-        //this.cameraTarget.z = this.model.position.z;
-
-        //START
         this.cameraTarget.x = this.physicsBody.position.x;
         this.cameraTarget.y = this.physicsBody.position.y + 1;
         this.cameraTarget.z = this.physicsBody.position.z;
-        //END
 
         this.controls.target = this.cameraTarget;
     }

@@ -49,13 +49,14 @@ export class PhysicsLayer{
     }
 
     public applyPhysicsBody( asset : Asset ){
-        const result = threeToCannon(asset.model, {type: ShapeType.SPHERE});
+        const result = threeToCannon(asset.model, {type: ShapeType.BOX});
         if(result && result.shape){
-            let shapebody: CANNON.Body = new CANNON.Body({ mass: 1 });
-            let mesh = (result.shape as CANNON.Sphere);
-            mesh.radius  = mesh.radius * 8;
-            mesh.updateBoundingSphereRadius();
-            shapebody.addShape(mesh, new CANNON.Vec3(0,mesh.radius,0));
+            let shapebody: CANNON.Body = new CANNON.Body({ mass: 50 });
+            let mesh = (result.shape as CANNON.Box);
+            let side = Math.max(mesh.halfExtents.x,mesh.halfExtents.y,mesh.halfExtents.z);
+            let bounds = new CANNON.Vec3(side,side,side);
+            let shape : CANNON.Box = new CANNON.Box(bounds);
+            shapebody.addShape(shape);
 
             shapebody.position.x = asset.model.position.x
             shapebody.position.y = asset.model.position.y

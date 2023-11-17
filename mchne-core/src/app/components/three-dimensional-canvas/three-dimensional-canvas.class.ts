@@ -9,6 +9,7 @@ import { ActorController } from "./visual-layer/actor-controller.model";
 import { CanvasAsset } from "./visual-layer/canvas-asset.model";
 import { VisualLayer } from "./visual-layer/visual-layer.model";
 import * as THREE from 'three'
+import * as CANNON from 'cannon-es'
 
 export class ThreeDimensionalWorld {
 
@@ -144,12 +145,18 @@ export class ThreeDimensionalWorld {
                 this.visualLayer.controls.update();
             }
             actor.update();
+            this.physicsLayer.physicsWorld.fixedStep();
             
-
+            if(actor.isSelected){
+                let moveX = actor.physicsMesh.position.x - actor.model.position.x;
+                let moveZ = actor.physicsMesh.position.z - actor.model.position.z;
+                actor.actorControls.updateCameraTarget(moveX,moveZ)
+            }
+            
             // update physics body position
             actor.model.position.set(
                 actor.physicsMesh.position.x,
-                actor.physicsMesh.position.y,
+                actor.physicsMesh.position.y - (actor.physicsMesh.shapes[0] as CANNON.Box).halfExtents.y,
                 actor.physicsMesh.position.z
               )
               // update physics body rotation
@@ -159,14 +166,12 @@ export class ThreeDimensionalWorld {
                 actor.physicsMesh.quaternion.z,
                 actor.physicsMesh.quaternion.w
               )
-
         })
         if(this.debugModeEnabled){
             if(this.physicsLayer){
                 this.physicsLayer.cannonDebugger.update();
             }
         }
-        this.physicsLayer.physicsWorld.fixedStep();
         this.render();
     }
     

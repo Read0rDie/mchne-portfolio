@@ -15,9 +15,9 @@ export class VisualLayer {
   public actors : Actor[] = [];
   public defaultActor : string;
 
-  public cameraOffsetX : number = 300;
-  public cameraOffsetY : number = 200;
-  public cameraOffsetZ : number = 200;
+  public cameraOffsetX : number = 30;
+  public cameraOffsetY : number = 20;
+  public cameraOffsetZ : number = 20;
 
   public shapes : { 'shape' : Trimesh, 'mesh' : THREE.Mesh }[] = [];
 
@@ -56,17 +56,6 @@ export class VisualLayer {
     this.camera.position.x = this.cameraOffsetZ;
   }
 
-  private initRenderer(){
-    this.renderer = new THREE.WebGLRenderer({
-      canvas : this.canvas,
-      antialias: true
-    })
-    this.renderer.setSize(window.innerWidth, window.innerHeight);
-    this.renderer.shadowMap.enabled = true;
-    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap
-    document.body.appendChild(this.renderer.domElement);
-  }
-
   private initOrbitControls(){
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     this.controls.enableDamping = true;
@@ -80,6 +69,9 @@ export class VisualLayer {
     if(this.debugMode){
       const axesHelper = new THREE.AxesHelper(500);
       this.scene.add(axesHelper);
+      if(this.camera){
+        //this.scene.add(new THREE.CameraHelper(this.camera));
+      }
     }
 
     lightSources.forEach((light) => {
@@ -87,8 +79,25 @@ export class VisualLayer {
       if(light instanceof THREE.PointLight){
         const helper = new THREE.PointLightHelper( (light as THREE.PointLight), 5 );
         this.scene.add(helper);
+      } else if(light instanceof THREE.DirectionalLight){
+        const helper = new THREE.DirectionalLightHelper( (light as THREE.DirectionalLight), 5 );
+        this.scene.add(helper);
       }
     })
+  }
+
+  private initRenderer(){
+    this.renderer = new THREE.WebGLRenderer({
+      canvas : this.canvas,
+      antialias: true
+    })
+    this.renderer.setSize(window.innerWidth, window.innerHeight);
+    this.renderer.shadowMap.enabled = true;
+    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap
+    //this.renderer.shadowMap.type = THREE.BasicShadowMap
+    //this.renderer.shadowMap.type = THREE.PCFShadowMap
+    //this.renderer.shadowMap.type = THREE.VSMShadowMap
+    document.body.appendChild(this.renderer.domElement);
   }
 
   private generateLighting() : THREE.Light[] {
@@ -101,13 +110,18 @@ export class VisualLayer {
     retVal.push(ambientLight);
 
     // Omnidirectional light that DOES cast shadows
-    let spotLight = new THREE.PointLight(0xFFFFFF, 1.0, 5000, 0);
+    let spotLight = new THREE.DirectionalLight(0xFFFFFF, 4.0);
     spotLight.castShadow = true;
-    spotLight.position.set(0,2000,400);
+    spotLight.position.set(0,200,200);
     spotLight.castShadow = true;
     spotLight.shadow.radius = 5
-    spotLight.shadow.mapSize.x = 10000
-    spotLight.shadow.mapSize.y = 10000
+    spotLight.shadow.mapSize.width = 8192
+    spotLight.shadow.mapSize.height = 8192
+    spotLight.shadow.bias = - 0.0005
+    spotLight.shadow.camera.top = 100
+    spotLight.shadow.camera.bottom = -100
+    spotLight.shadow.camera.left = -100
+    spotLight.shadow.camera.right = 100
     retVal.push(spotLight);
 
     return retVal;
@@ -116,7 +130,7 @@ export class VisualLayer {
   private generateFloor(){
     if(this.debugMode){
       let segments = 40;
-      let tileSize = 100;
+      let tileSize = 10;
       const geometry = new THREE.PlaneGeometry(tileSize, tileSize, segments, segments);
       const materialEven = new THREE.MeshStandardMaterial( {color: 0xccccfc, side: THREE.DoubleSide} );
       const materialOdd = new THREE.MeshStandardMaterial( {color: 0x444464, side: THREE.DoubleSide} );
@@ -134,7 +148,7 @@ export class VisualLayer {
           this.scene.add(tile);
       }
     } else {
-      let planeWidth = 4000;
+      let planeWidth = 400;
       const geometry = new THREE.PlaneGeometry(planeWidth, planeWidth);
       const material = new THREE.MeshStandardMaterial( {color: 0xFCF6B1, side: THREE.DoubleSide} );
       const plane = new THREE.Mesh(geometry,material);

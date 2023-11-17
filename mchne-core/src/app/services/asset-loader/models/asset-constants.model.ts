@@ -17,19 +17,20 @@ export class CanvasAssetMetaDataConfig {
 
     private constructor(){
         // populate actor metadata
-        this._actorAssets.push( new CanvasAsset('cat', new THREE.Vector3(100,0,100), 0.1, 0) );
-        this._actorAssets.push( new CanvasAsset('dog', new THREE.Vector3(0,0,100), 0.1, 0) );
+        this._actorAssets.push( new CanvasAsset('cat', new THREE.Vector3(10,0,10), 0.01, 0) );
+        this._actorAssets.push( new CanvasAsset('dog', new THREE.Vector3(0,0,10), 0.01, 0) );
 
         // populate rock prop assets
-        this._rockAssets.push(new CanvasAsset('rock_arrangement_medium_4', new THREE.Vector3(-100,0,0), 0.1, Math.PI/2));
-        this._rockAssets.push(new CanvasAsset('rock_arrangement_medium_3', new THREE.Vector3(-75,0,-75), 0.1, 0));
-        this._rockAssets.push(new CanvasAsset('rock_063', new THREE.Vector3(50,0,-75), 0.3, 0));
-        this._rockAssets.push(new CanvasAsset('rock_064', new THREE.Vector3(-140,0,-90), 0.4, Math.PI));
-        this._rockAssets.push(new CanvasAsset('rock_arrangement_large1', new THREE.Vector3(-25,0,-100), 0.05, 0));
+        this._rockAssets.push(new CanvasAsset('rock_arrangement_medium_4', new THREE.Vector3(-10,0,0), 0.01, Math.PI/2));
+        this._rockAssets.push(new CanvasAsset('rock_arrangement_medium_3', new THREE.Vector3(-7.5,0,-7.5), 0.01, 0));
+        this._rockAssets.push(new CanvasAsset('rock_063', new THREE.Vector3(5,0,-7.5), 0.03, 0));
+        this._rockAssets.push(new CanvasAsset('rock_064', new THREE.Vector3(-14,0,-9), 0.04, Math.PI));
+        this._rockAssets.push(new CanvasAsset('rock_arrangement_large1', new THREE.Vector3(-2.5,0,-10), 0.005, 0));
 
         // populate tree prop assets
-        this._treeAssets.push(new CanvasAsset('pine_tree_arrangement_col4', new THREE.Vector3(-150,0,-300), 0.2, Math.PI/2));
-        this._treeAssets.push(new CanvasAsset('pine_tree_col3_23', new THREE.Vector3(-220,0,-95), 0.2, Math.PI/2));
+        this._treeAssets.push(new CanvasAsset('pine_tree_arrangement_col4', new THREE.Vector3(-15,0,-30), 0.02, Math.PI/2));
+        //this._treeAssets.push(new CanvasAsset('pine_tree_arrangement_col4', new THREE.Vector3(-150,0,-300), 0.01, Math.PI/2));
+        this._treeAssets.push(new CanvasAsset('pine_tree_col3_23', new THREE.Vector3(-22,0,-9.5), 0.02, Math.PI/2));
         
     }
 

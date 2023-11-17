@@ -94,6 +94,12 @@ export class AssetService {
         let gltfData = await this._loader.loadAsync(url);
         let models =  gltfData.scene.children[0].children[0].children[0].children[1];
         models.traverse(function (model) {
+            model.traverse(function (object) {
+                if((object as THREE.Mesh).isMesh){
+                    object.castShadow = true;
+                    object.receiveShadow = true;
+                }               
+            });
             let prop = new Prop(model, []);
             thizz._props.set(prop.name, prop);
         });
@@ -117,8 +123,10 @@ export class AssetService {
         let gltfData = await this._loader.loadAsync(url);
         const model = gltfData.scene;
         model.traverse(function (object) {
-            object.castShadow = true;
-            object.receiveShadow = true;                
+            if((object as THREE.Mesh).isMesh){
+                object.castShadow = true;
+                object.receiveShadow = true;
+            }                
         });
         let actor = new Actor(model, gltfData.animations);
         thizz._actors.set(key, actor);
